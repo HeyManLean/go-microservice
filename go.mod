@@ -1,6 +1,6 @@
 module microservice
 
-go 1.20
+go 1.23
 
 require go.etcd.io/etcd v3.3.27+incompatible
 
