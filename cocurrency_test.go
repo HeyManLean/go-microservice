@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 )
@@ -52,5 +53,23 @@ func TestWaitGroup(t *testing.T) {
 	/*
 		并发消费消息，并等待全部消息处理完成
 	*/
+	wg := &sync.WaitGroup{}
 
+	worker := func(id int) {
+		fmt.Println("worker start: ", id)
+		time.Sleep(time.Millisecond * 100 * time.Duration(id))
+		fmt.Println("worker done: ", id)
+	}
+
+	for i := 0; i < 3; i++ {
+		// Add 添加协程
+		wg.Add(1)
+		go func() {
+			worker(i + 1)
+			// Done 结束协程
+			wg.Done()
+		}()
+	}
+	// Wait 直到所有协程结束
+	wg.Wait()
 }
