@@ -29,6 +29,9 @@ func ShowUser[T ~int](u *User[string, int], rank T) {
 type MyInt int
 
 func TestGeneric(t *testing.T) {
+	/*
+		泛型
+	*/
 	var rank MyInt = 1
 	user := &User[string, int]{"zhangsan", int(rank)}
 

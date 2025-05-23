@@ -24,6 +24,9 @@ func genMultiple[T ~int](multiple int) iter.Seq[T] {
 }
 
 func TestIterator(t *testing.T) {
+	/*
+		生成器，动态生成数据，避免占用内存过多
+	*/
 	for num := range genMultiple[int](3) {
 		if num >= 100 {
 			break

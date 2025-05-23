@@ -6,31 +6,10 @@ import (
 	"time"
 )
 
-func worker(done chan bool) {
+func TestSelect(t *testing.T) {
 	/*
-		chan 表示在函数周期中可读可写
+		多个channel的select，先获取到值的chan先处理
 	*/
-	wait(done)
-	fmt.Print("working...")
-	time.Sleep(time.Second)
-	fmt.Println("done")
-	finish(done)
-}
-
-func wait(done <-chan bool) {
-	/* <-chan 在该函数周期中只读*/
-	<-done
-}
-
-func finish(done chan<- bool) {
-	/*
-		chan<- 表示在函数周期中只写
-	*/
-	done <- true
-}
-
-func selectChannels() {
-	// 多个channel的select，先获取到值的chan先处理
 	w1 := make(chan int)
 	w2 := make(chan int)
 	go func(c chan<- int) {
@@ -51,31 +30,7 @@ func selectChannels() {
 	}
 }
 
-func timeout() {
-	// 通过 select 和 channel 实现 timeout
-	w1 := make(chan int)
-	go func(c chan<- int) {
-		time.Sleep(time.Second * 2)
-		c <- 1
-	}(w1)
-	select {
-	case val := <-w1:
-		fmt.Println("result: ", val)
-	case <-time.After(time.Second):
-		fmt.Println("timeout 1")
-	}
-
-	// 使用 default 避免阻塞，否则报错：fatal error: all goroutines are asleep - deadlock!
-	w2 := make(chan int)
-	select {
-	case val := <-w2:
-		fmt.Println("result: ", val)
-	default:
-		fmt.Println("no result")
-	}
-}
-
-func closingChannel() {
+func TestclosingChannel() {
 	/*
 		生产者发送多个消息，发送完关闭通道，并等待消费端消费完成后退出
 	*/
@@ -120,7 +75,33 @@ func closingChannel() {
 	fmt.Println("got more:", ok)
 }
 
+func worker(done chan bool) {
+	/*
+		chan 表示在函数周期中可读可写
+	*/
+	wait(done)
+	fmt.Print("working...")
+	time.Sleep(time.Second)
+	fmt.Println("done")
+	finish(done)
+}
+
+func wait(done <-chan bool) {
+	/* <-chan 在该函数周期中只读*/
+	<-done
+}
+
+func finish(done chan<- bool) {
+	/*
+		chan<- 表示在函数周期中只写
+	*/
+	done <- true
+}
+
 func TestChannel(t *testing.T) {
+	/*
+		多个worker 协作
+	*/
 	done := make(chan bool, 1)
 	go worker(done)
 	go worker(done)
@@ -129,14 +110,13 @@ func TestChannel(t *testing.T) {
 	finish(done)
 	time.Sleep(time.Second)
 	wait(done)
+}
 
-	selectChannels()
-
-	timeout()
-
-	closingChannel()
-
-	// // 必须先有接受者，才能向 chan 发送数据，否则死锁
+func TestRange(t *testing.T) {
+	/*
+		range 可以阻塞从 chan 获取数据，直到 chan 被 close
+		必须先有接受者，才能向 chan 发送数据，否则死锁
+	*/
 	w1 := make(chan int)
 	go func(w chan int) {
 		val := <-w1
